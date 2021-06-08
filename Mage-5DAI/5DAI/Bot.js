@@ -22,9 +22,6 @@ var moveValues = [ //Piece Movement Value
     1 / 8,  //king     1/8
 ];
 
-
-
-
 var global = 0;
 var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
 chess.print();
@@ -138,8 +135,7 @@ function kingExposure(chess, moveVec, kPos, mult) {
     };
 }
 
-
-console.log("\n Begin negaMax Testing \n");
+console.log("\nnegaMax\n");
 
 //Initial Variables
 var alpha = -Infinity;
