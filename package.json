@@ -1,0 +1,23 @@
+{
+  "name": "mageai-5d",
+  "version": "0.0.1",
+  "description": "A 5D Chess AI utilizing 5d-chess-js",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MageOChicken/MageAI-5D.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MageOChicken/MageAI-5D/issues"
+  },
+  "homepage": "https://github.com/MageOChicken/MageAI-5D#readme",
+  "dependencies": {
+    "5d-chess-js": "^1.1.2"
+  }
+}

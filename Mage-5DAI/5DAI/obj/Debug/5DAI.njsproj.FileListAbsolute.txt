@@ -1,6 +1,0 @@
-C:\Users\maxbr\source\repos\5DAI\5DAI\obj\Debug\5DAI.njsproj.CoreCompileInputs.cache
-C:\Users\maxbr\source\repos\5DAI\5DAI\bin\Microsoft.NodejsTools.WebRole.dll
-C:\Users\maxbr\source\repos\5DAI\5DAI\obj\Debug\5DAI.njsproj.AssemblyReference.cache
-C:\Users\maxbr\Source\Repos\MageAI-5D\Mage-5DAI\5DAI\obj\Debug\5DAI.njsproj.AssemblyReference.cache
-C:\Users\maxbr\Source\Repos\MageAI-5D\Mage-5DAI\5DAI\obj\Debug\5DAI.njsproj.CoreCompileInputs.cache
-C:\Users\maxbr\Source\Repos\MageAI-5D\Mage-5DAI\5DAI\bin\Microsoft.NodejsTools.WebRole.dll
