@@ -22,11 +22,11 @@ var moveValues = [ //Piece Movement Value
     1 / 8,  //king     1/8
 ];
 
-//var str1 =
-//    '[Board "Custom"]\n' +
-//    '[Mode "5D"]\n' +
-//    '[3r*1r*k*1/4p*p*bp*/1p*p*1q1p*Q/p*1P*p*4/1P*6/P*2BP*1NP*/3P*1P*P*1/R*4R*K*1:0:1:w]';
-//chess.import(str1);
+var str1 =
+    '[Board "Custom"]\n' +
+    '[Mode "5D"]\n' +
+    '[3r*1r*k*1/4p*p*bp*/1p*p*1q1p*Q/p*1P*p*4/1P*6/P*2BP*1NP*/3P*1P*P*1/R*4R*K*1:0:1:w]';
+chess.import(str1);
 
 /*
 chess.move('e3');
@@ -151,7 +151,7 @@ console.log("\nnegaMax\n");
 //Initial Variables
 var alpha = -Infinity;
 var beta = Infinity;
-var depth = 6;
+var depth = 4;
 var killer;
 
 console.time("Evaluation with Depth = " + depth);
@@ -184,7 +184,17 @@ function negaMax(chess, depth, alpha, beta, killer) {
             m--;
         }
     }
-    
+
+    var validMoveAmount = possibleMoves.length;
+    if (validMoveAmount == 0 && chess.inCheck) {
+        return {
+            eval: -Infinity,
+            evalMove: [],
+            killerMove: [],
+        };
+    }
+
+
 
     if (killer !== undefined) {
         var index = possibleMoves.findIndex(killerHeuristic, killer)
@@ -194,7 +204,7 @@ function negaMax(chess, depth, alpha, beta, killer) {
         }
     }
 
-    var validMoveAmount = possibleMoves.length;
+    
     for (var v = 0; v < validMoveAmount; v++) {
         var nodeChess = chess.copy();
         nodeChess.raw.boardFuncs.move(nodeChess.rawBoard, possibleMoves[v]);
