@@ -93,7 +93,7 @@ function evaluate(chess) {
     var timelineNum = curTimeline.timeline;
     var turnNum = curTimeline.turns.length - !isTurnZero;
 
-    var curPlayer = curBoard.player;
+    var curPlayer = curBoard.player=="black";
     var pieces = curTurn.pieces;
 
     // Loop through all pieces in the position.
@@ -101,11 +101,11 @@ function evaluate(chess) {
 
         // Current piece to evaluate and corresponding information.
         var curPiece = pieces[i];
-        var pieceNum = curPiece.piece;
-        var playerSign = pieceNum % 2 === curPlayer ? 1 : -1;
+        var pieceNum = chess.raw.pieceFuncs.fromChar(curPiece.piece,curPiece.player=="black");
+        var playerSign = pieceNum % 2 == curPlayer ? 1 : -1;
         var curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
         var numMoves = chess.raw.pieceFuncs.moves(chess.rawBoard, curLocation, 1, chess.rawPromotionPieces).length;
-
+        
         // Check if the piece is a white or a black piece to get around the lack of integer division in Javascript...
         if (pieceNum % 2 === 0) {
             var pieceIndex = (pieceNum / 2) - 1;
