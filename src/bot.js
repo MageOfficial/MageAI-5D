@@ -3,10 +3,30 @@
 var Chess = require('5d-chess-js');
 var chess = new Chess();
 chess.reset("turn_zero");
-var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
+
+var str1 =
+    '[Board "Custom"]\n' +
+    '[Mode "5D"]\n' +
+    '[3qk*b1r*/2p*p*1p*1p*/bp*n1p*1p*n/p*N6/P*3N2P*/1P*B1P*Q2/2P*2P*P*R*/R*3K*B2:0:1:w]';
+
+chess.import(str1)
+
+chess.move('Nf6')
+chess.submit()
+chess.move('Ke7')
+chess.submit()
+chess.move('Nd5')
+chess.submit()
+chess.move('Ke8')
+chess.submit()
+chess.move('Nbxc7')
+chess.submit()
+chess.move('Qxc7')
+chess.submit()
+
 
 // Piece material values.
-var matValues = [ 
+var matValues = [
     1000,  //pawn   0
     4000,  //bishop 1
     4000,  //knight 2
@@ -16,7 +36,7 @@ var matValues = [
 ];
 
 // Piece movement values.
-var moveValues = [ 
+var moveValues = [
     0,   //pawn      0
     115,  //bishop  3/26
     188,  //knight  3/16
@@ -26,7 +46,7 @@ var moveValues = [
 ];
 
 // Piece priority values.
-var priorityValues = [ 
+var priorityValues = [
     9,  // pawn
     6,  // bishop
     7,  // knight
@@ -37,8 +57,12 @@ var priorityValues = [
 
 // Initial Variables
 console.log("\nnegaMax\n");
+var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
+
 chess.print();
-var depth = 3;
+var depth = 5;
+var mateOnly = true;
+
 var evalSteps = 0;
 
 var global = 0;
@@ -69,11 +93,14 @@ function evaluate(chess) {
 
     // Increment the number of Evaluations.
     evalSteps++;
-    
+
     // Static checkmate evaluation.
     if (chess.inCheckmate) {
         // console.log("Evaluation Checkmate");
         return -Infinity;
+    }
+    if (mateOnly === true) {
+        return 0;
     }
 
     // Initialize variables.
@@ -81,19 +108,19 @@ function evaluate(chess) {
     var curBoard = chess.board;
     var curTimeline = curBoard.timelines[0];
     var curTurn = curTimeline.turns[curTimeline.turns.length - 1];
-    var knightMoves = [ 
-        [ 0, 0, 1, 2], [ 0, 0, 1, -2], [ 0, 0, -1, 2], [ 0, 0, -1, -2],
-        [ 0, 0, 2, 1], [ 0, 0, 2, -1], [ 0, 0, -2, 1], [ 0, 0, -2, -1]
+    var knightMoves = [
+        [0, 0, 1, 2], [0, 0, 1, -2], [0, 0, -1, 2], [0, 0, -1, -2],
+        [0, 0, 2, 1], [0, 0, 2, -1], [0, 0, -2, 1], [0, 0, -2, -1]
     ];
-    var queenMoves = [      
-        [ 0, 0, 0, 1], [ 0, 0, 0, -1], [ 0, 0, 1, 0], [ 0, 0, -1, 0],
-        [ 0, 0, 1, 1], [ 0, 0, 1, -1], [ 0, 0, -1, 1], [ 0, 0, -1, -1]
+    let queenMoves = [
+        [0, 0, 0, 1], [0, 0, 0, -1], [0, 0, 1, 0], [0, 0, -1, 0],
+        [0, 0, -1, 1], [0, 0, 1, 1], [0, 0, -1, -1], [0, 0, 1, -1]
     ];
-    
+
     var timelineNum = curTimeline.timeline;
     var turnNum = curTimeline.turns.length - !isTurnZero;
 
-    var curPlayer = curBoard.player=="black";
+    var curPlayer = curBoard.player == "black";
     var pieces = curTurn.pieces;
 
     // Loop through all pieces in the position.
@@ -101,11 +128,11 @@ function evaluate(chess) {
 
         // Current piece to evaluate and corresponding information.
         var curPiece = pieces[i];
-        var pieceNum = chess.raw.pieceFuncs.fromChar(curPiece.piece,curPiece.player=="black");
+        var pieceNum = chess.raw.pieceFuncs.fromChar(curPiece.piece, curPiece.player == "black");
         var playerSign = pieceNum % 2 == curPlayer ? 1 : -1;
         var curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
         var numMoves = chess.raw.pieceFuncs.moves(chess.rawBoard, curLocation, 1, chess.rawPromotionPieces).length;
-        
+
         // Check if the piece is a white or a black piece to get around the lack of integer division in Javascript...
         if (pieceNum % 2 === 0) {
             var pieceIndex = (pieceNum / 2) - 1;
@@ -173,21 +200,18 @@ function kingExposure(chess, kPos, kingColor, queenMoves, knightMoves) {
 
 function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves) {
     var kingPieceDefense = 0;
-    
+
 
     // Knight
     for (var j = 0; j < knightMoves.length; j++) {
-    var rPos = kingPiece[2] + knightMoves[j][2];
-    var fPos = kingPiece[3] + knightMoves[j][3];
-    
+        var rPos = kingPiece[2] + knightMoves[j][2];
+        var fPos = kingPiece[3] + knightMoves[j][3];
+
 
         if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
-            
-            var pieceNum = Math.abs(curBoard[rPos][fPos]);
-            if (pieceNum === 5) {
-                kingPieceDefense += (kingColor === 1 ? 1 : -1);
-            } else if (pieceNum === 6) {
-                kingPieceDefense += (kingColor === 0 ? 1 : -1);
+            let pieceNum = Math.abs(curBoard[rPos][fPos]);
+            if (pieceNum === 5 || pieceNum === 6) {
+                kingPieceDefense += (pieceNum % 2 === kingColor ? 1 : -1);
             }
         }
     }
@@ -220,28 +244,34 @@ function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves)
         if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
-                if (pieceNum <= 4 || pieceNum === 9 || pieceNum === 10) {
+
+                if (pieceNum <= 2 && pieceNum % 2 === j % 2) {
                     kingPieceDefense += (pieceNum % 2 === kingColor ? 1 : -1);
-                } else {
+                }
+                else if (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10) {
+                    kingPieceDefense += (pieceNum % 2 === kingColor ? 1 : -1);
+                }
+                else {
                     continue;
                 }
             }
-        }
 
-        while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
-            var pieceNum = Math.abs(curBoard[rPos][fPos]);
-            if (pieceNum !== 0) {
-                if ((pieceNum >= 5 && pieceNum <= 8) || pieceNum === 11 || pieceNum === 12) {
-                    break;
-                }
-                if (pieceNum === 3 ||  pieceNum === 9 ) {
-                    kingPieceDefense += (kingColor === 1 ? 1 : -1);
-                } else if (pieceNum === 4 || pieceNum === 10) {
-                    kingPieceDefense += (kingColor === 0 ? 1 : -1);
-                }
-            }
+
             rPos += queenMoves[j][2];
             fPos += queenMoves[j][3];
+            while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+                let pieceNum = Math.abs(curBoard[rPos][fPos]);
+                if (pieceNum !== 0) {
+                    if (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10) {
+                        kingPieceDefense += (pieceNum % 2 === kingColor ? 1 : -1);
+                    }
+                    else {
+                        break;
+                    }
+                }
+                rPos += queenMoves[j][2];
+                fPos += queenMoves[j][3];
+            }
         }
     }
     return kingPieceDefense;
@@ -262,20 +292,17 @@ function negaMax(chess, depth, alpha, beta, killer) {
     // Depth limit.
     if (depth == 0) {
         // chess.print();
-        return {eval: evaluate(chess), evalMove: [], killerMove: undefined};
+        return { eval: evaluate(chess), evalMove: [], killerMove: undefined };
     }
 
-    // Find the current player's pieces.
-    var curPieces = pieceGen(chess);
-    
     // Generate the current player's valid moves and order them.
     var killerMoves = killer.slice();
-    var validMoves = moveGen(chess, curPieces);
+    var validMoves = moveGen(chess);
     orderKillerMove(validMoves, killerMoves);
 
     var alphaMove = [];
+    let score = -Infinity;
     for (var i = 0; i < validMoves.length; i++) {
-
         // Copy the board state and play move "i".
         var tempChess = chess.copy();
         tempChess.raw.boardFuncs.move(tempChess.rawBoard, validMoves[i].move);
@@ -284,7 +311,8 @@ function negaMax(chess, depth, alpha, beta, killer) {
 
         // Recursively calls the function to obtain the evaluation of the current position.
         var output = negaMax(tempChess, depth - 1, -beta, -alpha, killerMoves);
-        score = -output.eval;
+        //score = -output.eval;
+        score = Math.max(score, -output.eval);
 
         if (output.killerMove !== undefined) {
             addKiller(killerMoves, output.killerMove);
@@ -294,7 +322,7 @@ function negaMax(chess, depth, alpha, beta, killer) {
             alphaMove = output.evalMove.slice();
             alphaMove[depth - 1] = validMoves[i].move;
         }*/
-        
+
         // A better move has been found.
         if (score > alpha) {
             alphaMove = output.evalMove.slice();
@@ -311,14 +339,14 @@ function negaMax(chess, depth, alpha, beta, killer) {
     }
 
     return {
-        eval: alpha,
-        evalMove: alphaMove, 
+        eval: score,
+        evalMove: alphaMove,
         killerMove: betaMove
     };
 }
 
-function pieceGen(chess) {
-
+// Generates all valid moves for the given pieces.
+function moveGen(chess) {
     // Initialize variables.
     var curTimeline = chess.board.timelines[0];
     var timelineNum = curTimeline.timeline;
@@ -327,52 +355,86 @@ function pieceGen(chess) {
     var curTurn = curTimeline.turns[curTimeline.turns.length - 1];
     var pieces = curTurn.pieces;
 
-    var curPieces = [];
+    let validMoves = [];
 
-    // Check if the player is white or black to get around the lack of integer division in Javascript...
-    if(player) {
-        // Loop through all pieces in the position.
-        for (var i = 0; i < pieces.length; i++) {
-            var curPiece = pieces[i];
-            // If the current piece matches the current player, add it's piece index and location to the array.
-            if (curPiece.player === player) {
-                var curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
-                curPieces.push([(curPiece.piece - 1) / 2, curLocation]);
+    if (player == "black") {
+        for (let i = 0; i < pieces.length; i++) {
+            let curPiece = pieces[i];
+            if (curPiece.player == "black") {
+                let curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
+                let possibleMoves = chess.raw.pieceFuncs.moves(chess.rawBoard, curLocation, 1, chess.rawPromotionPieces);
+                for (let j = 0; j < possibleMoves.length; j++) {
+                    chess.raw.boardFuncs.move(chess.rawBoard, possibleMoves[j]);
+                    if (!chess.inCheck) {
+                        let pieceIndex = (chess.raw.pieceFuncs.fromChar(curPiece.piece, curPiece.player == "black") - 1) / 2;
+                        let piecePriority = priorityValues[pieceIndex];
+                        heapAdd(validMoves, {piece: pieceIndex, move: possibleMoves[j], priority: piecePriority});
+                    }
+                    chess.rawBoard[0].pop();
+                }
             }
         }
-    } else {
-        // Loop through all pieces in the position.
-        for (var i = 0; i < pieces.length; i++) {
-            // If the current piece matches the current player, add it's piece index and location to the array.
-            var curPiece = pieces[i];
-            if (curPiece.player === player) {
-                var curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
-                curPieces.push([(curPiece.piece / 2) - 1, curLocation]);
+    } 
+    else {
+        for (let i = 0; i < pieces.length; i++) {
+            let curPiece = pieces[i];
+            if (curPiece.player == "white") {
+                let curLocation = [timelineNum, turnNum, curPiece.position.rank - 1, curPiece.position.file - 1];
+                let possibleMoves = chess.raw.pieceFuncs.moves(chess.rawBoard, curLocation, 1, chess.rawPromotionPieces);
+                for (let j = 0; j < possibleMoves.length; j++) {
+                    chess.raw.boardFuncs.move(chess.rawBoard, possibleMoves[j]);
+                    if (!chess.inCheck) {
+                        let pieceIndex = (chess.raw.pieceFuncs.fromChar(curPiece.piece, curPiece.player == "black") / 2) - 1;
+                        let piecePriority = priorityValues[pieceIndex];
+                        heapAdd(validMoves, {piece: pieceIndex, move: possibleMoves[j], priority: piecePriority});
+                    }
+                    chess.rawBoard[0].pop();
+                }
             }
         }
     }
-    return curPieces;
+    return validMoves;
 }
 
+/*
 // Generates all valid moves for the given pieces.
 function moveGen(chess, pieces) {
 
     var validMoves = [];
     for (var i = 0; i < pieces.length; i++) {
-        var possibleMoves = chess.raw.pieceFuncs.moves(chess.rawBoard, pieces[i][1], 1, chess.rawPromotionPieces);
+        var possibleMoves=[]
+        possibleMoves[i].move = chess.raw.pieceFuncs.moves(chess.rawBoard, pieces[i][1], 1, chess.rawPromotionPieces);
+        possibleMoves[i].piece = pieces[i][0]
         for (var j = 0; j < possibleMoves.length; j++) {
             chess.raw.boardFuncs.move(chess.rawBoard, possibleMoves[j]);
             if (!chess.inCheck) {
-                var pieceIndex = pieces[i][0];
-                heapAdd(validMoves, {piece: pieceIndex, move: possibleMoves[j], priority: priorityValues[pieceIndex]});
+
+                possibleMoves.sort(function (move1, move2) {
+                    var pieceIndex = pieces[i][0];
+                    var move1 = actions[i]
+                    var move2 = actions[maxIndex]
+
+                    move1Cap = chess.rawBoard[move1[1][0]][move1[1][1]][move1[1][2]][move1[1][3]]
+                    move2Cap = chess.rawBoard[move2[1][0]][move2[1][1]][move2[1][2]][move2[1][3]]
+
+                    if (move1Cap > move2Cap) {
+                        maxIndex = i
+                    }
+                    else if (move1Cap == move2Cap) {
+                        move1Mov = matValues[pieceIndex]
+                        move2Mov = matValues[pieceIndex]
+                        if (move2Mov > move1Mov) {
+                            maxIndex = i
+                        }
+                    }
+                });
             }
             chess.rawBoard[0].pop();
         }
     }
-
     return validMoves;
 }
-
+*/
 // Adds an entry to the heap.
 function heapAdd(heap, data) {
     heap.push(data);
