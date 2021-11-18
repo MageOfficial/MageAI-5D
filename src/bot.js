@@ -9,20 +9,20 @@ var str1 =
     '[Mode "5D"]\n' +
     '[3qk*b1r*/2p*p*1p*1p*/bp*n1p*1p*n/p*N6/P*3N2P*/1P*B1P*Q2/2P*2P*P*R*/R*3K*B2:0:1:w]';
 
-chess.import(str1)
+//chess.import(str1)
 
-chess.move('Nf6')
-chess.submit()
-chess.move('Ke7')
-chess.submit()
-chess.move('Nd5')
-chess.submit()
-chess.move('Ke8')
-chess.submit()
-chess.move('Nbxc7')
-chess.submit()
-chess.move('Qxc7')
-chess.submit()
+//chess.move('Nf6')
+//chess.submit()
+//chess.move('Ke7')
+//chess.submit()
+//chess.move('Nd5')
+//chess.submit()
+//chess.move('Ke8')
+//chess.submit()
+//chess.move('Nbxc7')
+//chess.submit()
+//chess.move('Qxc7')
+//chess.submit()
 
 
 // Piece material values.
@@ -47,12 +47,12 @@ var moveValues = [
 
 // Piece priority values.
 var priorityValues = [
-    9,  // pawn
-    6,  // bishop
-    7,  // knight
-    8,  // rook
+    1,  // pawn
+    4,  // bishop
+    3,  // knight
+    2,  // rook
     5,  // queen
-    10  // king
+    6  // king
 ];
 
 // Initial Variables
@@ -61,7 +61,7 @@ var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? che
 
 chess.print();
 var depth = 5;
-var mateOnly = true;
+var mateOnly = false;
 
 var evalSteps = 0;
 
@@ -297,12 +297,14 @@ function negaMax(chess, depth, alpha, beta, killer) {
 
     // Generate the current player's valid moves and order them.
     var killerMoves = killer.slice();
-    var validMoves = moveGen(chess);
-    orderKillerMove(validMoves, killerMoves);
-
+    var validMoves = moveGen(chess, killerMoves);
+    validMoves.sort((a, b) => b.value-a.value)
+    //orderKillerMove(validMoves, killerMoves);
+    //console.log(validMoves)
     var alphaMove = [];
     let score = -Infinity;
     for (var i = 0; i < validMoves.length; i++) {
+       
         // Copy the board state and play move "i".
         var tempChess = chess.copy();
         tempChess.raw.boardFuncs.move(tempChess.rawBoard, validMoves[i].move);
@@ -346,7 +348,7 @@ function negaMax(chess, depth, alpha, beta, killer) {
 }
 
 // Generates all valid moves for the given pieces.
-function moveGen(chess) {
+function moveGen(chess, killerMoves) {
     // Initialize variables.
     var curTimeline = chess.board.timelines[0];
     var timelineNum = curTimeline.timeline;
@@ -354,8 +356,7 @@ function moveGen(chess) {
     var player = chess.board.player;
     var curTurn = curTimeline.turns[curTimeline.turns.length - 1];
     var pieces = curTurn.pieces;
-
-    let validMoves = [];
+    var validMoves = [];
 
     if (player == "black") {
         for (let i = 0; i < pieces.length; i++) {
@@ -366,9 +367,14 @@ function moveGen(chess) {
                 for (let j = 0; j < possibleMoves.length; j++) {
                     chess.raw.boardFuncs.move(chess.rawBoard, possibleMoves[j]);
                     if (!chess.inCheck) {
-                        let pieceIndex = (chess.raw.pieceFuncs.fromChar(curPiece.piece, curPiece.player == "black") - 1) / 2;
-                        let piecePriority = priorityValues[pieceIndex];
-                        heapAdd(validMoves, {piece: pieceIndex, move: possibleMoves[j], priority: piecePriority});
+                        
+                        chess.rawAction++;
+                        chess.raw.mateFuncs.blankAction(chess.rawBoard, chess.rawAction);
+                        var checkCaused=chess.inCheck
+                        chess.rawBoard[0].pop();
+                        chess.rawAction--;
+                        
+                        validMoves.push({move: possibleMoves[j], value: sortValue(chess, possibleMoves[j], Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
                     }
                     chess.rawBoard[0].pop();
                 }
@@ -384,9 +390,14 @@ function moveGen(chess) {
                 for (let j = 0; j < possibleMoves.length; j++) {
                     chess.raw.boardFuncs.move(chess.rawBoard, possibleMoves[j]);
                     if (!chess.inCheck) {
-                        let pieceIndex = (chess.raw.pieceFuncs.fromChar(curPiece.piece, curPiece.player == "black") / 2) - 1;
-                        let piecePriority = priorityValues[pieceIndex];
-                        heapAdd(validMoves, {piece: pieceIndex, move: possibleMoves[j], priority: piecePriority});
+
+                        chess.rawAction++;
+                        chess.raw.mateFuncs.blankAction(chess.rawBoard, chess.rawAction);
+                        var checkCaused=chess.inCheck
+                        chess.rawBoard[0].pop();
+                        chess.rawAction--;
+
+                        validMoves.push({move: possibleMoves[j], value: sortValue(chess,possibleMoves[j],Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
                     }
                     chess.rawBoard[0].pop();
                 }
@@ -394,6 +405,36 @@ function moveGen(chess) {
         }
     }
     return validMoves;
+}
+
+function sortValue(chess, move, pieceIndex, killerMoves){
+    
+    for (var i = 0; i < killerMoves.length; i++) {
+        if (move[0][2] === killerMoves[i][0][2] && move[0][3] === killerMoves[i][0][3] && move[1][2] === killerMoves[i][1][2] && move[1][3] === killerMoves[i][1][3]){return Infinity};
+    }
+
+    var pieceCap=Math.abs(chess.rawBoard[move[1][0]][move[1][1]][move[1][2]][move[1][3]])
+
+    if(pieceIndex%2){
+        var moveSpace=priorityValues[(pieceIndex-1)/2]
+    }
+    else{
+        var moveSpace=priorityValues[(pieceIndex/2)-1]
+    }
+
+    var moveCap=0
+    if(pieceCap%2){
+        var moveCap=priorityValues[(pieceCap-1)/2]
+    }
+    else if(pieceCap!=0){
+        var moveCap=priorityValues[(pieceCap/2)-1]
+    }
+    if (checkCaused){
+        return moveCap*100+(6-moveSpace)+5000;
+    }
+    else{
+        return moveCap*100+(6-moveSpace);
+    }
 }
 
 /*
