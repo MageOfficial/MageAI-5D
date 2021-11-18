@@ -374,7 +374,7 @@ function moveGen(chess, killerMoves) {
                         chess.rawBoard[0].pop();
                         chess.rawAction--;
                         
-                        validMoves.push({move: possibleMoves[j], value: sortValue(chess, possibleMoves[j], Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
+                        validMoves.push({move: possibleMoves[j], value: sortValue(chess, checkCaused, possibleMoves[j], Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
                     }
                     chess.rawBoard[0].pop();
                 }
@@ -397,7 +397,7 @@ function moveGen(chess, killerMoves) {
                         chess.rawBoard[0].pop();
                         chess.rawAction--;
 
-                        validMoves.push({move: possibleMoves[j], value: sortValue(chess,possibleMoves[j],Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
+                        validMoves.push({move: possibleMoves[j], value: sortValue(chess, checkCaused, possibleMoves[j],Math.abs(chess.rawBoard[curLocation[0]][curLocation[1]][curLocation[2]][curLocation[3]]),killerMoves)})
                     }
                     chess.rawBoard[0].pop();
                 }
@@ -407,7 +407,7 @@ function moveGen(chess, killerMoves) {
     return validMoves;
 }
 
-function sortValue(chess, move, pieceIndex, killerMoves){
+function sortValue(chess, checkCaused, move, pieceIndex, killerMoves){
     
     for (var i = 0; i < killerMoves.length; i++) {
         if (move[0][2] === killerMoves[i][0][2] && move[0][3] === killerMoves[i][0][3] && move[1][2] === killerMoves[i][1][2] && move[1][3] === killerMoves[i][1][3]){return Infinity};
