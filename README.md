@@ -16,7 +16,7 @@ The search optimizations are currently:
 - Move ordering with checks
 - Move ordering with Static Exchange Evaluation(SEE)
 - Move ordering using killer heuristic
-- A evaluation mode for detecting mates by returning 0 for stats which are not checkmate.
+- A evaluation mode for detecting mates by returning 0 for states which are not checkmate.
 
 WIP additions:
 - Quiescence search
