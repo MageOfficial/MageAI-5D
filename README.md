@@ -12,11 +12,11 @@ The static evaluation currently checks
 Currently I am using a negaMax search algorithm. 
 
 The search optimizations are currently:
--Move ordering based on MVV-LVA
--Move ordering with checks
--Move ordering with Static Exchange Evaluation(SEE)
--Move ordering using killer heuristic
--A evaluation mode for detecting mates by returning 0 for stats which are not checkmate.
+- Move ordering based on MVV-LVA
+- Move ordering with checks
+- Move ordering with Static Exchange Evaluation(SEE)
+- Move ordering using killer heuristic
+- A evaluation mode for detecting mates by returning 0 for stats which are not checkmate.
 
 WIP additions:
 - Quiescence search
