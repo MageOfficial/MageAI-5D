@@ -19,11 +19,11 @@ The search optimizations are currently:
 -A evaluation mode for detecting mates by returning 0 for stats which are not checkmate.
 
 WIP additions:
--Quiescence search
--Principal Variation Search(PVS)
--Iterative Deepening Depth First Search(IDDFS)
--Mate Distance Pruning
--History Heuristic
+- Quiescence search
+- Principal Variation Search(PVS)
+- Iterative Deepening Depth First Search(IDDFS)
+- Mate Distance Pruning
+- History Heuristic
 
 A full multitimeline AI will most likely not result from this for awhile and if it does happen will likely be written in C++. (Hopefully this AI will also be in C++ eventually)
 A semi-working version that can play on mutliple timelines without considering legality though might be able to be implemented, but it will fail to actually refute softmates, and fail to consider cross timeline captures.
