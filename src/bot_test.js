@@ -4,7 +4,7 @@ var Chess = require('5d-chess-js');
 var chess = new Chess();
 chess.reset("turn_zero");
 
-var puzzle = 0
+var puzzle = 5
 //Los v Tesseract Mate in 6
 if (puzzle == 1) {
 
@@ -181,7 +181,6 @@ var matValues = [
     12000, //queen  4
     -6000  //king   5
 ];
-
 // Piece movement values.
 var moveValues = [
     0,   //pawn      0
@@ -191,7 +190,6 @@ var moveValues = [
     143,  //queen   3/21
     125  //king     1/8
 ];
-
 // Piece priority values.
 var priorityValues = [
     1000,  // pawn
@@ -203,31 +201,67 @@ var priorityValues = [
 ];
 
 // Initial Variables
+
+//chess.move("Rb1")
+//chess.submit()
+
 console.log("\nnegaMax\n");
 
 var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
 console.log(chess.print())
-var depth = 3;
+var depth = 4;
 var mateOnly = false;
 
 var evalSteps = 0;
-
 var global = 0;
 
 console.time("Evaluation with Depth = " + depth);
 var evaluation = negaMax(chess, depth, -Infinity, Infinity, []); // Function call
 console.timeEnd("Evaluation with Depth = " + depth);
-
 console.log(chess.print())
+
 console.log("Move = " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 1], chess.rawBoard, chess.rawAction) + ' : ' + evaluation.eval / 1000);
 console.log("Postions Checked = " + evalSteps);
 
-console.log(global);
-
-for (var i = 0; i < evaluation.evalMove.length; i++) {
-    console.log(i + 1 + ": " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 1 - i], chess.rawBoard, chess.rawAction));
-    chess.move(evaluation.evalMove[evaluation.evalMove.length - 1 - i]);
-    chess.submit();
+console.log("Cutoffs = " + global);
+if (chess.board.player == "white") {
+    for (var i = 0; i < (evaluation.evalMove.length / 2); i++) {
+        var firstMove = i + 1 + ". " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 1 - 2 * i], chess.rawBoard, chess.rawAction)
+        chess.move(evaluation.evalMove[evaluation.evalMove.length - 1 - 2 * i]);
+        chess.submit();
+        if (evaluation.evalMove[evaluation.evalMove.length - 2 - 2 * i] != undefined) {
+            console.log(firstMove + " / " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 2 - 2 * i], chess.rawBoard, chess.rawAction));
+            chess.move(evaluation.evalMove[evaluation.evalMove.length - 2 - 2 * i]);
+            chess.submit();
+        }
+        else {
+            console.log(firstMove)
+        }
+    }
+}
+else{
+    var firstMove = "1. ..."
+    if (evaluation.evalMove[evaluation.evalMove.length - 1] != undefined) {
+        console.log(firstMove + " / " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 1], chess.rawBoard, chess.rawAction));
+        chess.move(evaluation.evalMove[evaluation.evalMove.length - 1]);
+        chess.submit();
+    }
+    else {
+        console.log(firstMove)
+    }
+    for (var i = 0; i < (evaluation.evalMove.length / 2); i++) {
+        var firstMove = i + 2 + ". " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 2 - 2 * i], chess.rawBoard, chess.rawAction)
+        chess.move(evaluation.evalMove[evaluation.evalMove.length - 2 - 2 * i]);
+        chess.submit();
+        if (evaluation.evalMove[evaluation.evalMove.length - 3 - 2 * i] != undefined) {
+            console.log(firstMove + " / " + chess.raw.pgnFuncs.fromMove(evaluation.evalMove[evaluation.evalMove.length - 3 - 2 * i], chess.rawBoard, chess.rawAction));
+            chess.move(evaluation.evalMove[evaluation.evalMove.length - 3 - 2 * i]);
+            chess.submit();
+        }
+        else {
+            console.log(firstMove)
+        }
+    }
 }
 
 /*
@@ -471,7 +505,7 @@ function negaMax(chess, depth, alpha, beta, killer) {
     var score = -Infinity;
 
     for (var i = 0; i < validMoves.length; i++) {
-
+        //console.log(chess.raw.pgnFuncs.fromMove(validMoves[i].move, chess.rawBoard, chess.rawAction) +" : " +validMoves[i].value)
         // Copy the board state and play move "i".
         var tempChess = chess.copy();
         tempChess.raw.boardFuncs.move(tempChess.rawBoard, validMoves[i].move);
@@ -479,12 +513,9 @@ function negaMax(chess, depth, alpha, beta, killer) {
         tempChess.rawAction++;
 
         // Recursively calls the function to obtain the evaluation of the current position.
-        if (i>10){
-            var output = negaMax(tempChess, depth-3, -beta, -alpha, killerMoves);
-        }
-        else{
+
         var output = negaMax(tempChess, depth - 1, -beta, -alpha, killerMoves);
-        }
+
         //score = -output.eval;
         score = Math.max(score, -output.eval);
 
@@ -492,23 +523,22 @@ function negaMax(chess, depth, alpha, beta, killer) {
             addKiller(killerMoves, output.killerMove);
         }
 
-        /*if(score === -Infinity) {
-            alphaMove = output.evalMove.slice();
-            alphaMove[depth - 1] = validMoves[i].move;
-        }*/
-
         // A better move has been found.
         if (score > alpha) {
+            alpha = score;
             alphaMove = output.evalMove.slice();
             alphaMove[depth - 1] = validMoves[i].move;
-            alpha = score;
         }
 
-        // The position is too good, the opponent will avoid it.
-        if (score >= beta) {
+        if (score >= beta) { // The position is too good, the opponent will avoid it.
             var betaMove = validMoves[i].move;
             global++;
             break;
+        }
+        else if (score==alpha & alphaMove[depth - 1]==undefined){
+            alpha = score;
+            alphaMove = output.evalMove.slice();
+            alphaMove[depth - 1] = validMoves[i].move;
         }
     }
 
@@ -588,16 +618,18 @@ function sortValue(chess, checkCaused, move, pieceIndex, killerMoves) {
         if (move[0][2] === killerMoves[i][0][2] && move[0][3] === killerMoves[i][0][3] && move[1][2] === killerMoves[i][1][2] && move[1][3] === killerMoves[i][1][3]) { return Infinity };
     }
 
-    checkVal=checkCaused*6000
+    checkVal = checkCaused * 5000
 
     //Find piece captured
     var pieceCap = Math.abs(chess.rawBoard[move[1][0]][move[1][1]][move[1][2]][move[1][3]])
-   
+
     //Find piece color
     if (pieceIndex % 2) {
+        var forwardBonus = (move[0][2]-move[1][2])
         var pieceType = (pieceIndex - 1) / 2
     }
     else {
+        var forwardBonus = (move[1][2]-move[0][2])
         var pieceType = (pieceIndex / 2) - 1
     }
 
@@ -624,21 +656,39 @@ function sortValue(chess, checkCaused, move, pieceIndex, killerMoves) {
         }
     }
     //Static Exchange Evaluation
-    var exchangeVal =0
+    var exchangeVal = 0
+    if (pieceType !== 5) {
+        exchangeVal = -see(chess, [move[1][0], move[1][1] + 1, move[1][2], move[1][3]], 1 - (pieceIndex % 2))/2
+    }
+
+    //Forward Bonus
+    
+    //var centralBonus = 50*(move[1][2]-move[0][2])
 
     //Check if there is no piece being capture
     if (pieceCap == 0) {
-        if (pieceType !== 5){
-            exchangeVal =-see(chess, [move[1][0],move[1][1]+1,move[1][2],move[1][3]], 1-(pieceIndex % 2))*.975
-        }
-        var moveSpace = priorityValues[pieceType]
-        return moveSpace/100 + promotionBonus+exchangeVal+checkVal;
+
+        //var moveSpace = priorityValues[pieceType]
+        var moveSpace = [100,300,250,50,200,0][pieceType]
+        //return (240 - moveSpace / 100) / 2 + promotionBonus + exchangeVal +checkVal+forwardBonus;
+
+        return moveSpace + promotionBonus + exchangeVal +checkVal+50*forwardBonus;
+
+
     }
     else {
+        if (pieceCap % 2) {
+            var pieceCapType = (pieceCap - 1) / 2
+        }
+        else {
+            var pieceCapType = (pieceCap / 2) - 1
+        }    
+
         //Get values of piece being captured and piece that is moving
         var moveSpace = priorityValues[pieceType]
-        var moveCap = priorityValues[pieceType]
-        return moveCap + (2400 - moveSpace/10)/2 + promotionBonus+exchangeVal+checkVal;
+        var moveCap = priorityValues[pieceCapType]
+
+        return moveCap + (240 - moveSpace / 100) / 2 + promotionBonus + exchangeVal + checkVal+50*forwardBonus;
     }
 }
 
@@ -648,11 +698,11 @@ function see(chess, square, color) {
     piece = getSmallestAttacker(chess, square, color);
     // skip if the square isn't attacked anymore by this side 
     if (piece.length != 0) {
-        pieceToCap=matValues[Math.ceil((Math.abs(chess.rawBoard[square[0]][square[1]][square[2]][square[3]])/2))-1]
-        chess.raw.boardFuncs.move(chess.rawBoard, [piece,square]);
+        pieceToCap = matValues[Math.ceil((Math.abs(chess.rawBoard[square[0]][square[1]][square[2]][square[3]]) / 2)) - 1]
+        chess.raw.boardFuncs.move(chess.rawBoard, [piece, square]);
         chess.rawAction++;
         // Do not consider captures if they lose material, therefor max zero 
-        value = Math.max(0, pieceToCap - see(chess,[square[0],square[1]+1,square[2],square[3]], 1-color));
+        value = Math.max(0, pieceToCap - see(chess, [square[0], square[1] + 1, square[2], square[3]], 1 - color));
         chess.rawBoard[0].pop();
         chess.rawAction--;
     }
@@ -671,7 +721,7 @@ function getSmallestAttacker(chess, square, color) {
     ];
 
     var curBoard = chess.rawBoard[square[0]][square[1]];
-    var piecePos=[]
+    var piecePos = []
     // Diagonal
     for (var j = 4; j < 8; j++) {
         var rPos = square[2] + queenMoves[j][2];
@@ -688,8 +738,8 @@ function getSmallestAttacker(chess, square, color) {
                         }
                     }
                     else if (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10) {
-                        if (matValues[Math.ceil((pieceNum / 2))-1] < minValue) {
-                            minValue = matValues[Math.ceil((pieceNum / 2))-1]
+                        if (matValues[Math.ceil((pieceNum / 2)) - 1] < minValue) {
+                            minValue = matValues[Math.ceil((pieceNum / 2)) - 1]
                             piecePos = [square[0], square[1], rPos, fPos];
                         }
                     }
@@ -702,8 +752,8 @@ function getSmallestAttacker(chess, square, color) {
                 var pieceNum = Math.abs(curBoard[rPos][fPos]);
                 if (pieceNum !== 0) {
                     if ((pieceNum % 2 == color) & (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10)) {
-                        if (matValues[Math.ceil((pieceNum / 2))-1] < minValue) {
-                            minValue = matValues[Math.ceil((pieceNum / 2))-1]
+                        if (matValues[Math.ceil((pieceNum / 2)) - 1] < minValue) {
+                            minValue = matValues[Math.ceil((pieceNum / 2)) - 1]
                             piecePos = [square[0], square[1], rPos, fPos];
                         }
                     }
@@ -723,7 +773,7 @@ function getSmallestAttacker(chess, square, color) {
         if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
 
-            if ((pieceNum % 2 == color) & (pieceNum === 5 || pieceNum === 6) & (matValues[2] < minValue )) {
+            if ((pieceNum % 2 == color) & (pieceNum === 5 || pieceNum === 6) & (matValues[2] < minValue)) {
                 minValue = matValues[2]
                 piecePos = [square[0], square[1], rPos, fPos];
             }
@@ -739,10 +789,10 @@ function getSmallestAttacker(chess, square, color) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
                 if ((pieceNum % 2 == color) & (pieceNum >= 7 && pieceNum <= 10)) {
-                        if (matValues[Math.ceil((pieceNum / 2))-1] < minValue) {
-                            minValue = matValues[Math.ceil((pieceNum / 2))-1]
-                            piecePos = [square[0], square[1], rPos, fPos];
-                        }
+                    if (matValues[Math.ceil((pieceNum / 2)) - 1] < minValue) {
+                        minValue = matValues[Math.ceil((pieceNum / 2)) - 1]
+                        piecePos = [square[0], square[1], rPos, fPos];
+                    }
                 }
                 break;
             }
