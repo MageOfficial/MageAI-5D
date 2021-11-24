@@ -4,7 +4,7 @@ var Chess = require('5d-chess-js');
 var chess = new Chess();
 chess.reset("turn_zero");
 
-var puzzle = 5
+var puzzle = 0
 //Los v Tesseract Mate in 6
 if (puzzle == 1) {
 
@@ -169,7 +169,7 @@ else if (puzzle == 9) {
         '[Promotions "Q"]\n' +
         '[p*r*nbk*/3p*p*/5/P*P*3/K*BNR*P*:0:1:w]';
 
-    //chess.import(str4);
+    chess.import(str3);
 }
 
 // Piece material values.
@@ -209,7 +209,7 @@ console.log("\nnegaMax\n");
 
 var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
 console.log(chess.print())
-var depth = 4;
+var depth = 13;
 var mateOnly = false;
 
 var evalSteps = 0;
@@ -366,12 +366,13 @@ function kingExposure(chess, kPos, kingColor, queenMoves, knightMoves, noQueen, 
     var kingDFac = 500;
     var exposedSq = 0;
     var kingPieces = [];
-
+    var ranks=curBoard.length-1
+    var files=curBoard[0].length-1
     // Loop through all eight directions (queen's movement).
     for (var v = 0; v < 8; v++) {
         var rPos = kPos[2] + queenMoves[v][2];
         var fPos = kPos[3] + queenMoves[v][3];
-        while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        while (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             if (chess.rawBoard[kPos[0]][kPos[1]][rPos][fPos] !== 0) {
                 kingPieces.push([kPos[0], kPos[1], rPos, fPos]);
                 break;
@@ -402,14 +403,15 @@ function kingExposure(chess, kPos, kingColor, queenMoves, knightMoves, noQueen, 
 function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves) {
     var kingPieceDefense = 0;
 
-
+    var ranks=curBoard.length-1
+    var files=curBoard[0].length-1
     // Knight
     for (var j = 0; j < knightMoves.length; j++) {
         var rPos = kingPiece[2] + knightMoves[j][2];
         var fPos = kingPiece[3] + knightMoves[j][3];
 
 
-        if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        if (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum === 5 || pieceNum === 6) {
                 kingPieceDefense += (pieceNum % 2 === kingColor ? 1 : -1);
@@ -422,7 +424,7 @@ function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves)
         var rPos = kingPiece[2] + queenMoves[j][2];
         var fPos = kingPiece[3] + queenMoves[j][3];
 
-        while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        while (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
                 if (pieceNum <= 6 || pieceNum === 11 || pieceNum === 12) {
@@ -442,7 +444,7 @@ function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves)
         var rPos = kingPiece[2] + queenMoves[j][2];
         var fPos = kingPiece[3] + queenMoves[j][3];
 
-        if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        if (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
 
@@ -460,7 +462,7 @@ function kingPieceCheck(curBoard, kingPiece, kingColor, queenMoves, knightMoves)
 
             rPos += queenMoves[j][2];
             fPos += queenMoves[j][3];
-            while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+            while (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
                 var pieceNum = Math.abs(curBoard[rPos][fPos]);
                 if (pieceNum !== 0) {
                     if (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10) {
@@ -535,7 +537,7 @@ function negaMax(chess, depth, alpha, beta, killer) {
             global++;
             break;
         }
-        else if (score==alpha & alphaMove[depth - 1]==undefined){
+        else if (score==alpha & alphaMove[depth - 1]==undefined){ //Used for record keeping of PV
             alpha = score;
             alphaMove = output.evalMove.slice();
             alphaMove[depth - 1] = validMoves[i].move;
@@ -721,13 +723,15 @@ function getSmallestAttacker(chess, square, color) {
     ];
 
     var curBoard = chess.rawBoard[square[0]][square[1]];
+    var ranks=curBoard.length-1
+    var files=curBoard[0].length-1
     var piecePos = []
     // Diagonal
     for (var j = 4; j < 8; j++) {
         var rPos = square[2] + queenMoves[j][2];
         var fPos = square[3] + queenMoves[j][3];
 
-        if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        if (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
                 if (pieceNum % 2 == color) {
@@ -748,7 +752,7 @@ function getSmallestAttacker(chess, square, color) {
             }
             rPos += queenMoves[j][2];
             fPos += queenMoves[j][3];
-            while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+            while (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
                 var pieceNum = Math.abs(curBoard[rPos][fPos]);
                 if (pieceNum !== 0) {
                     if ((pieceNum % 2 == color) & (pieceNum === 3 || pieceNum === 4 || pieceNum === 9 || pieceNum === 10)) {
@@ -770,7 +774,7 @@ function getSmallestAttacker(chess, square, color) {
         var rPos = square[2] + knightMoves[j][2];
         var fPos = square[3] + knightMoves[j][3];
 
-        if (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        if (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
 
             if ((pieceNum % 2 == color) & (pieceNum === 5 || pieceNum === 6) & (matValues[2] < minValue)) {
@@ -785,7 +789,7 @@ function getSmallestAttacker(chess, square, color) {
         var rPos = square[2] + queenMoves[j][2];
         var fPos = square[3] + queenMoves[j][3];
 
-        while (rPos >= 0 && fPos >= 0 && rPos <= 7 && fPos <= 7) {
+        while (rPos >= 0 && fPos >= 0 && rPos <= ranks && fPos <= files) {
             var pieceNum = Math.abs(curBoard[rPos][fPos]);
             if (pieceNum !== 0) {
                 if ((pieceNum % 2 == color) & (pieceNum >= 7 && pieceNum <= 10)) {
