@@ -218,7 +218,10 @@ var priorityValues = [
 ];
 
 // Initial Variables
+<<<<<<< HEAD
 
+=======
+>>>>>>> a46e8730b44dd1e899b561b2025d6a4296dbbdd9
 console.log("\nnegaMax\n");
 
 var isTurnZero = chess.rawBoard.length > 0 ? (chess.rawBoard[0].length > 0 ? chess.rawBoard[0][0] === null : false) : false;
